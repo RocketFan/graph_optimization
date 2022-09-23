@@ -1,12 +1,13 @@
 FROM ros:noetic
 
-RUN apt-get update && apt-get -y install \
+RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     build-essential \
     wget \
     git \
     cmake\
     gazebo11 \
-    python3-catkin-tools
+    python3-catkin-tools \
+    libnvidia-gl-515-server
 
 # Setup user
 RUN adduser --disabled-password --gecos '' docker && \
@@ -54,6 +55,8 @@ RUN echo "source /opt/ros/noetic/setup.bash" >> /home/docker/.bashrc && \
 WORKDIR $ROS_WORKSPACE
 RUN source /opt/ros/noetic/setup.bash && \
     catkin build
+
+RUN sudo apt-get -y --quiet --no-install-recommends install libnvidia-gl-515-server 
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
