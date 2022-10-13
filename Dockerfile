@@ -37,11 +37,11 @@ RUN rosdep update && sudo apt-get update && \
     ros-noetic-cv-bridge
 
 # Build and Install mavlink_sitl_gazebo
-RUN git clone https://github.com/PX4/PX4-SITL_gazebo.git --recursive && \
-    cd PX4-SITL_gazebo && mkdir build && cd build && \
-    cmake .. && make -j4 && \
-    sudo make install && \
-    cd .. && rm -rf PX4-SITL_gazebo
+# RUN git clone https://github.com/PX4/PX4-SITL_gazebo.git --recursive && \
+#     cd PX4-SITL_gazebo && mkdir build && cd build && \
+#     cmake .. && make -j4 && \
+#     sudo make install && \
+#     cd .. && rm -rf PX4-SITL_gazebo
 
 # Install GeographicLib datasets
 RUN sudo /opt/ros/noetic/lib/mavros/install_geographiclib_datasets.sh
@@ -50,6 +50,8 @@ SHELL ["/bin/bash", "-c"]
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> /home/docker/.bashrc && \
     echo "source /home/docker/ws/devel/setup.bash" >> /home/docker/.bashrc
+    # echo "export ROS_PACKAGE_PATH=\"${ROS_PACKAGE_PATH}:/home/docker/ws/src/PX4-Autopilot\"" >> /home/docker/.bashrc && \
+    # echo "export ROS_PACKAGE_PATH=\"${ROS_PACKAGE_PATH}:/home/docker/ws/src/PX4-Autopilot/Tools/simulation/gazebo/sitl_gazebo\"" >> /home/docker/.bashrc
 
 # Build
 WORKDIR $ROS_WORKSPACE
