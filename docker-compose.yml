@@ -1,10 +1,9 @@
 services:
     uwb_localization:
         container_name: uwb_localization
-        hostname: uwb_localization
         image: hf/uwb_px4_sim:latest
         runtime: nvidia
-        command: ./start.sh
+        command: ./scripts/start.sh
         build:
             dockerfile: Dockerfile
         environment:
@@ -14,7 +13,7 @@ services:
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix:ro
             - $PWD:/home/docker/ws/src/uwb_localization:rw
-            - $PWD/start.sh:/home/docker/ws/start.sh:rw
+            - $PWD/scripts:/home/docker/ws/scripts:rw
         privileged: true
         network_mode: host
         deploy:

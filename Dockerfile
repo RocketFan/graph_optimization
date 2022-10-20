@@ -5,7 +5,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     wget \
     git \
     cmake\
-    gazebo11 \
+    # gazebo11 \
     python3-catkin-tools \
     libnvidia-gl-515-server
 
@@ -28,6 +28,8 @@ RUN catkin init
 RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive && \
     bash ./PX4-Autopilot/Tools/setup/ubuntu.sh --no-nuttx
 
+RUN cd PX4-Autopilot && DONT_RUN=1 make -j8 px4_sitl_default gazebo && cd ..
+
 # Install ROS dependencies
 RUN rosdep update && sudo apt-get update && \
     rosdep install --from-paths ${ROS_WORKSPACE} -r -y --ignore-src && \
@@ -37,11 +39,11 @@ RUN rosdep update && sudo apt-get update && \
     ros-noetic-cv-bridge
 
 # Build and Install mavlink_sitl_gazebo
-RUN git clone https://github.com/PX4/PX4-SITL_gazebo.git --recursive && \
-    cd PX4-SITL_gazebo && mkdir build && cd build && \
-    cmake .. && make -j4 && \
-    sudo make install && \
-    cd .. && rm -rf PX4-SITL_gazebo
+# RUN git clone https://github.com/PX4/PX4-SITL_gazebo.git --recursive && \
+#     cd PX4-SITL_gazebo && mkdir build && cd build && \
+#     cmake .. && make -j4 && \
+#     sudo make install && \
+#     cd .. && rm -rf PX4-SITL_gazebo
 
 # Install GeographicLib datasets
 RUN sudo /opt/ros/noetic/lib/mavros/install_geographiclib_datasets.sh
@@ -56,7 +58,8 @@ WORKDIR $ROS_WORKSPACE
 RUN source /opt/ros/noetic/setup.bash && \
     catkin build
 
-RUN sudo apt-get -y --quiet --no-install-recommends install libnvidia-gl-515-server 
+RUN sudo apt install daemon
+# RUN sudo cp -r /home/docker/ws/src/PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix /etc/
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
