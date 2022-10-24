@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="est" default="ekf2"/>
+    <arg name="vehicle" default="iris"/>
     <group ns="uav1">
         <!-- MAVROS and vehicle configs -->
         <arg name="ID" value="1"/>

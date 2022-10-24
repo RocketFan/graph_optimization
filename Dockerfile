@@ -9,12 +9,12 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     python3-catkin-tools \
     libnvidia-gl-515-server
 
-# Setup user
+# Create and setup user
 RUN adduser --disabled-password --gecos '' docker && \
     groupadd -r -g 110 render && \
     adduser docker sudo && \
     adduser docker render && \
-    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers 
 USER docker
 
 # Create ROS workspace
@@ -25,10 +25,15 @@ ENV ROS_WORKSPACE=/home/docker/ws
 RUN catkin init
 
 # Add PX4
-RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive && \
+WORKDIR /home/docker
+RUN git clone https://github.com/PX4/PX4-Autopilot.git -b v1.13.1 --recursive && \
     bash ./PX4-Autopilot/Tools/setup/ubuntu.sh --no-nuttx
-
-RUN cd PX4-Autopilot && DONT_RUN=1 make -j8 px4_sitl_default gazebo && cd ..
+ENV PX4_PATH=/home/docker/PX4-Autopilot
+# RUN echo hejooo
+# RUN rm -r $PX4_PATH/Tools/simulation/gazebo/sitl_gazebo/models/iris
+# COPY models/iris $PX4_PATH/Tools/simulation/gazebo/sitl_gazebo/models/iris
+# RUN sudo chmod 777 $PX4_PATH/Tools/simulation/gazebo/sitl_gazebo/models/iris
+RUN cd $PX4_PATH && DONT_RUN=1 make -j8 px4_sitl_default gazebo && cd ..
 
 # Install ROS dependencies
 RUN rosdep update && sudo apt-get update && \
@@ -38,28 +43,17 @@ RUN rosdep update && sudo apt-get update && \
     ros-noetic-gazebo-ros \
     ros-noetic-cv-bridge
 
-# Build and Install mavlink_sitl_gazebo
-# RUN git clone https://github.com/PX4/PX4-SITL_gazebo.git --recursive && \
-#     cd PX4-SITL_gazebo && mkdir build && cd build && \
-#     cmake .. && make -j4 && \
-#     sudo make install && \
-#     cd .. && rm -rf PX4-SITL_gazebo
-
 # Install GeographicLib datasets
 RUN sudo /opt/ros/noetic/lib/mavros/install_geographiclib_datasets.sh
 
 SHELL ["/bin/bash", "-c"]
-
-RUN echo "source /opt/ros/noetic/setup.bash" >> /home/docker/.bashrc && \
-    echo "source /home/docker/ws/devel/setup.bash" >> /home/docker/.bashrc
 
 # Build
 WORKDIR $ROS_WORKSPACE
 RUN source /opt/ros/noetic/setup.bash && \
     catkin build
 
-RUN sudo apt install daemon
-# RUN sudo cp -r /home/docker/ws/src/PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix /etc/
+RUN echo "source /home/docker/ws/scripts/setup.sh" >> /home/docker/.bashrc
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
