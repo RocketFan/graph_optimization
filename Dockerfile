@@ -29,10 +29,10 @@ WORKDIR /home/docker
 RUN git clone https://github.com/PX4/PX4-Autopilot.git -b v1.13.1 --recursive && \
     bash ./PX4-Autopilot/Tools/setup/ubuntu.sh --no-nuttx
 ENV PX4_PATH=/home/docker/PX4-Autopilot
-# RUN echo hejooo
-# RUN rm -r $PX4_PATH/Tools/simulation/gazebo/sitl_gazebo/models/iris
-# COPY models/iris $PX4_PATH/Tools/simulation/gazebo/sitl_gazebo/models/iris
-# RUN sudo chmod 777 $PX4_PATH/Tools/simulation/gazebo/sitl_gazebo/models/iris
+RUN echo hejooo
+RUN rm -r $PX4_PATH/Tools/sitl_gazebo/models/iris
+COPY models/iris $PX4_PATH/Tools/sitl_gazebo/models/iris
+RUN sudo chmod 777 $PX4_PATH/Tools/sitl_gazebo/models/iris
 RUN cd $PX4_PATH && DONT_RUN=1 make -j8 px4_sitl_default gazebo && cd ..
 
 # Install ROS dependencies

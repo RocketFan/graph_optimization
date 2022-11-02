@@ -1,7 +1,6 @@
 name: simulation
 root: ./
 on_project_start: echo "START"
-pre_window: echo "START"; export # export UAV_NAME="uav${UAV_NUMBERS[1]}"; export RUN_TYPE=simulation; export UAV_TYPE=t650; export WORLD_NAME=simulation; export SENSORS="garmin_down"
 startup_window: gazebo
 windows:
   - roscore:

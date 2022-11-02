@@ -52,13 +52,23 @@
       <gravity>1</gravity>
       <velocity_decay/>
     </link>
-    <include>
-      <uri>model://imu</uri>
+    <link name='/imu_link'>
       <pose>0 0 0 0 0 0</pose>
-      <name>imu</name>
-    </include>
-    <joint name='imu_joint' type='revolute'>
-      <child>imu::link</child>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.015</mass>
+        <inertia>
+          <ixx>1e-05</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>1e-05</iyy>
+          <iyz>0</iyz>
+          <izz>1e-05</izz>
+        </inertia>
+      </inertial>
+    </link>
+    <joint name='/imu_joint' type='revolute'>
+      <child>/imu_link</child>
       <parent>base_link</parent>
       <axis>
         <xyz>1 0 0</xyz>
@@ -417,17 +427,16 @@
       <child>gps0::link</child>
       <parent>base_link</parent>
     </joint>
-    <include>
-      <uri>model://magnetometer</uri>
-      <pose>0 0 0 0 0 0</pose>
-      <name>mag</name>
-    </include>
-    <joint name='mag_joint' type='fixed'>
-      <child>mag::link</child>
-      <parent>base_link</parent>
-    </joint>
     <plugin name='groundtruth_plugin' filename='libgazebo_groundtruth_plugin.so'>
       <robotNamespace/>
+    </plugin>
+    <plugin name='magnetometer_plugin' filename='libgazebo_magnetometer_plugin.so'>
+      <robotNamespace/>
+      <pubRate>100</pubRate>
+      <noiseDensity>0.0004</noiseDensity>
+      <randomWalk>6.4e-06</randomWalk>
+      <biasCorrelationTime>600</biasCorrelationTime>
+      <magTopic>/mag</magTopic>
     </plugin>
     <plugin name='barometer_plugin' filename='libgazebo_barometer_plugin.so'>
       <robotNamespace/>
@@ -451,10 +460,10 @@
       <sdk_addr>INADDR_ANY</sdk_addr>
       <sdk_udp_port>14540</sdk_udp_port>
       <hil_mode>{{ hil_mode }}</hil_mode>
-      <hil_state_level>0</hil_state_level>
+      <hil_state_level>1</hil_state_level>
       <send_vision_estimation>0</send_vision_estimation>
       <send_odometry>1</send_odometry>
-      <enable_lockstep>0</enable_lockstep>
+      <enable_lockstep>1</enable_lockstep>
       <use_tcp>1</use_tcp>
       <motorSpeedCommandPubTopic>/gazebo/command/motor_speed</motorSpeedCommandPubTopic>
       <control_channels>
@@ -555,5 +564,18 @@
       </control_channels>
     </plugin>
     <static>0</static>
+    <plugin name='rotors_gazebo_imu_plugin' filename='libgazebo_imu_plugin.so'>
+      <robotNamespace/>
+      <linkName>/imu_link</linkName>
+      <imuTopic>/imu</imuTopic>
+      <gyroscopeNoiseDensity>0.00018665</gyroscopeNoiseDensity>
+      <gyroscopeRandomWalk>3.8785e-05</gyroscopeRandomWalk>
+      <gyroscopeBiasCorrelationTime>1000.0</gyroscopeBiasCorrelationTime>
+      <gyroscopeTurnOnBiasSigma>0.0087</gyroscopeTurnOnBiasSigma>
+      <accelerometerNoiseDensity>0.00186</accelerometerNoiseDensity>
+      <accelerometerRandomWalk>0.006</accelerometerRandomWalk>
+      <accelerometerBiasCorrelationTime>300.0</accelerometerBiasCorrelationTime>
+      <accelerometerTurnOnBiasSigma>0.196</accelerometerTurnOnBiasSigma>
+    </plugin>
   </model>
 </sdf>
