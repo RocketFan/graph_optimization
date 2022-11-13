@@ -9,7 +9,10 @@
     <group ns="uav$(arg id)">
         <!-- MAVROS and vehicle configs -->
         <arg name="ID" value="$(arg id)"/>
-        <arg name="fcu_url" default="udp://:1454$(arg ID)@localhost:1458$(arg ID)"/>
+        <arg name="fcu_port_1" value="$(eval 14540 + arg('ID'))" />
+        <arg name="fcu_port_2" value="$(eval 14540 + arg('ID'))" />
+        <!-- <arg name="fcu_url" default="udp://:1454$(arg ID)@localhost:1458$(arg ID)"/> -->
+        <arg name="fcu_url" value="udp://:$(arg fcu_port_1)@localhost:$(arg fcu_port_2)"/>
         <!-- PX4 SITL and vehicle spawn -->
         <include file="$(find px4)/launch/single_vehicle_spawn.launch">
             <arg name="x" value="$(arg x)"/>
@@ -19,8 +22,8 @@
             <arg name="P" value="0"/>
             <arg name="Y" value="0"/>
             <arg name="vehicle" value="$(arg vehicle)"/>
-            <arg name="mavlink_udp_port" value="1456$(arg ID)"/>
-            <arg name="mavlink_tcp_port" value="456$(arg ID)"/>
+            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('ID'))"/>
+            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('ID'))"/>
             <arg name="ID" value="$(arg ID)"/>
             <arg name="gst_udp_port" value="$(eval 5600 + arg('ID'))"/>
             <arg name="video_uri" value="$(eval 5600 + arg('ID'))"/>
