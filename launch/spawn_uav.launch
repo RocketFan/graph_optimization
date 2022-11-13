@@ -10,7 +10,7 @@
         <!-- MAVROS and vehicle configs -->
         <arg name="ID" value="$(arg id)"/>
         <arg name="fcu_port_1" value="$(eval 14540 + arg('ID'))" />
-        <arg name="fcu_port_2" value="$(eval 14580 + arg('ID'))" />
+        <arg name="fcu_port_2" value="$(eval 14540 + arg('ID'))" />
         <!-- <arg name="fcu_url" default="udp://:1454$(arg ID)@localhost:1458$(arg ID)"/> -->
         <arg name="fcu_url" value="udp://:$(arg fcu_port_1)@localhost:$(arg fcu_port_2)"/>
         <!-- PX4 SITL and vehicle spawn -->
