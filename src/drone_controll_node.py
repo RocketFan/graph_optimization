@@ -14,7 +14,7 @@ from mavros_msgs.srv import SetMode, SetModeRequest
 from mavros_msgs.srv import CommandHome, CommandHomeRequest
 from mavros_msgs.srv import ParamSet, ParamSetRequest
 from mavros_msgs.msg import State
-# from visualization_msgs.msg import MarkerArray
+from nav_msgs.msg import Path
 
 
 def extract_id(name: str):
@@ -22,7 +22,7 @@ def extract_id(name: str):
     return int(id)
 
 
-class Point:
+class WayPoint:
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
@@ -37,7 +37,7 @@ class Waypoints:
         self.id = extract_id(name)
         self.path = os.path.dirname(__file__) + '/../waypoints'
         self.points = []
-        # self.points_pub = rospy.Publisher(f'/{self.name}/waypoints', MarkerArray, queue_size=10)
+        self.marker_pub = rospy.Publisher(f'/{self.name}/waypoints', Path, queue_size=10)
 
     def load(self, type: str):
         with open(f'{self.path}/{type}/{self.id}.txt', 'r') as f:
@@ -48,15 +48,26 @@ class Waypoints:
 
     def parse_point(self, line: str) -> Point:
         line_array = line.split(' ')
-        point = Point(float(line_array[0]),
+        point = WayPoint(float(line_array[0]),
                       float(line_array[1]),
                       float(line_array[2]))
 
         return point
 
-    # def publish(self):
-    #     markers = MarkerArray()
-    #     markers.markers.append()
+    def publish(self):
+        path = Path()
+        path.header.frame_id = 'map'
+
+        for waypoint in self.points:
+            point = Point()
+            point.x = waypoint.x
+            point.y = waypoint.y
+            point.z = waypoint.z
+            pose = PoseStamped()
+            pose.pose.position = point
+            path.poses.append(pose)
+
+        self.marker_pub.publish(path)
 
 
 class Drone:
@@ -230,6 +241,7 @@ class DronesControllNode:
 
         while not rospy.is_shutdown():
             self.run_state()
+            self.waypoints.publish()
             self.rate.sleep()
 
     def wait_for_msgs(self):
