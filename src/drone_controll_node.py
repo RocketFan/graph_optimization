@@ -2,17 +2,62 @@
 
 import rospy
 import numpy as np
+import os
 
 from enum import Enum, auto
 from time import sleep
 
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Point
 from sensor_msgs.msg import NavSatFix
 from mavros_msgs.srv import CommandBool
 from mavros_msgs.srv import SetMode, SetModeRequest
 from mavros_msgs.srv import CommandHome, CommandHomeRequest
 from mavros_msgs.srv import ParamSet, ParamSetRequest
 from mavros_msgs.msg import State
+# from visualization_msgs.msg import MarkerArray
+
+
+def extract_id(name: str):
+    id = name.replace('uav', '')
+    return int(id)
+
+
+class Point:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __str__(self):
+        return f'[x: {self.x}, y: {self.y}, z: {self.z}]'
+
+class Waypoints:
+    def __init__(self, name):
+        self.name = name
+        self.id = extract_id(name)
+        self.path = os.path.dirname(__file__) + '/../waypoints'
+        self.points = []
+        # self.points_pub = rospy.Publisher(f'/{self.name}/waypoints', MarkerArray, queue_size=10)
+
+    def load(self, type: str):
+        with open(f'{self.path}/{type}/{self.id}.txt', 'r') as f:
+            for line in f.readlines():
+                point = self.parse_point(line)
+                self.points.append(point)
+                rospy.loginfo(f'[{self.name}] Load point: {point}')
+
+    def parse_point(self, line: str) -> Point:
+        line_array = line.split(' ')
+        point = Point(float(line_array[0]),
+                      float(line_array[1]),
+                      float(line_array[2]))
+
+        return point
+
+    # def publish(self):
+    #     markers = MarkerArray()
+    #     markers.markers.append()
+
 
 class Drone:
     def __init__(self, name):
@@ -21,16 +66,24 @@ class Drone:
         self.fly_timer = None
 
         mavros_prefix = f'/{self.name}/mavros'
-        self.arming_client = rospy.ServiceProxy(f'{mavros_prefix}/cmd/arming', CommandBool)
-        self.set_home_client = rospy.ServiceProxy(f'{mavros_prefix}/cmd/set_home', CommandHome)
-        self.set_mode_client = rospy.ServiceProxy(f'{mavros_prefix}/set_mode', SetMode)
-        self.set_param_client = rospy.ServiceProxy(f'{mavros_prefix}/param/set', ParamSet)
+        self.arming_client = rospy.ServiceProxy(
+            f'{mavros_prefix}/cmd/arming', CommandBool)
+        self.set_home_client = rospy.ServiceProxy(
+            f'{mavros_prefix}/cmd/set_home', CommandHome)
+        self.set_mode_client = rospy.ServiceProxy(
+            f'{mavros_prefix}/set_mode', SetMode)
+        self.set_param_client = rospy.ServiceProxy(
+            f'{mavros_prefix}/param/set', ParamSet)
 
-        self.local_point_pub = rospy.Publisher(f'{mavros_prefix}/setpoint_position/local', PoseStamped, queue_size=10)
+        self.local_point_pub = rospy.Publisher(
+            f'{mavros_prefix}/setpoint_position/local', PoseStamped, queue_size=10)
 
-        self.global_position_sub = rospy.Subscriber(f'{mavros_prefix}/global_position/global', NavSatFix, self.global_position_callback)
-        self.local_position_sub = rospy.Subscriber(f'{mavros_prefix}/local_position/pose', PoseStamped, self.local_position_callback)
-        self.state_sub = rospy.Subscriber(f'{mavros_prefix}/state', State, self.state_callback);
+        self.global_position_sub = rospy.Subscriber(
+            f'{mavros_prefix}/global_position/global', NavSatFix, self.global_position_callback)
+        self.local_position_sub = rospy.Subscriber(
+            f'{mavros_prefix}/local_position/pose', PoseStamped, self.local_position_callback)
+        self.state_sub = rospy.Subscriber(
+            f'{mavros_prefix}/state', State, self.state_callback)
 
         self.global_position_msg: NavSatFix = None
         self.local_position_msg: PoseStamped = None
@@ -38,8 +91,8 @@ class Drone:
 
     def is_ready(self):
         return (self.global_position_msg != None
-            and self.local_position_msg != None
-            and self.state_msg != None)
+                and self.local_position_msg != None
+                and self.state_msg != None)
 
     def is_connected(self):
         return self.state_msg.connected
@@ -55,7 +108,8 @@ class Drone:
 
     def is_reached(self, x, y, z):
         local_position = self.local_position_msg.pose.position
-        position = np.array([local_position.x, local_position.y, local_position.z])
+        position = np.array(
+            [local_position.x, local_position.y, local_position.z])
         desired_position = np.array([x, y, z])
         diff_position = np.linalg.norm(desired_position - position)
 
@@ -74,8 +128,9 @@ class Drone:
         req = CommandHomeRequest()
         req.current_gps = True
         res = self.set_home_client(req)
-        rospy.loginfo(f'[{self.name}] Init home sucess: {res.success}, result: {res.result}')
-    
+        rospy.loginfo(
+            f'[{self.name}] Init home sucess: {res.success}, result: {res.result}')
+
     def stop(self):
         if self.fly_timer:
             self.fly_timer.shutdown()
@@ -85,18 +140,22 @@ class Drone:
 
     def arm(self):
         res = self.arming_client(True)
-        rospy.loginfo(f'[{self.name}] Arm sucess: {res.success}, result: {res.result}')
+        rospy.loginfo(
+            f'[{self.name}] Arm sucess: {res.success}, result: {res.result}')
 
     def takeoff(self, altitude):
         self.stop()
         self.flying = True
-        self.fly_timer = rospy.Timer(rospy.Duration(0.05), lambda _: self.fly_to_point_callback(0, 0, altitude))
+        self.fly_timer = rospy.Timer(rospy.Duration(
+            0.05), lambda _: self.fly_to_point_callback(0, 0, altitude))
 
     def land(self, x, y):
         self.stop()
         self.flying = True
-        self.fly_timer = rospy.Timer(rospy.Duration(0.05), lambda _: self.fly_to_point_callback(x, y, 2))
-        self.land_timer = rospy.Timer(rospy.Duration(0.05), lambda _: self.land_callback())
+        self.fly_timer = rospy.Timer(rospy.Duration(
+            0.05), lambda _: self.fly_to_point_callback(x, y, 2))
+        self.land_timer = rospy.Timer(rospy.Duration(
+            0.05), lambda _: self.land_callback())
 
     def land_callback(self):
         if not self.is_flying():
@@ -106,13 +165,13 @@ class Drone:
     def fly_to_point(self, x, y, z):
         self.stop()
         self.flying = True
-        self.fly_timer = rospy.Timer(rospy.Duration(0.05), lambda _: self.fly_to_point_callback(x, y, z))
+        self.fly_timer = rospy.Timer(rospy.Duration(
+            0.05), lambda _: self.fly_to_point_callback(x, y, z))
 
     def fly_to_point_callback(self, x, y, z):
         if self.is_reached(x, y, z):
             self.flying = False
 
-        print(x, y, z)
         msg = PoseStamped()
         msg.pose.position.x = x
         msg.pose.position.y = y
@@ -134,12 +193,14 @@ class Drone:
             req.value.integer = value
         else:
             req.value.real = value
-        
+
         res = self.set_param_client(req)
-        rospy.loginfo(f'[{self.name}] Set param {param_id} sucess: {res.success}, value: {value}')
+        rospy.loginfo(
+            f'[{self.name}] Set param {param_id} sucess: {res.success}, value: {value}')
 
     def print_mode(self):
         rospy.loginfo(f'MODE: {self.state_msg.mode}')
+
 
 class MissionState(Enum):
     NONE = auto()
@@ -150,15 +211,20 @@ class MissionState(Enum):
     FLY = auto()
     LAND = auto()
 
+
 class DronesControllNode:
     def __init__(self):
         self.rate = rospy.Rate(10)
-        self.drone_id = 'uav1'
-        # self.drone_id = rospy.get_namespace()
-        self.drone = Drone(self.drone_id)
+        self.drone_name = 'uav1'
+        rospy.logwarn(os.path.abspath(__file__))
+        # self.drone_name = rospy.get_namespace()
+        self.drone = Drone(self.drone_name)
         self.state = MissionState.INIT
+        self.waypoints = Waypoints(self.drone_name)
+        self.waypoints_index = 0
 
     def run(self):
+        self.waypoints.load('random')
         self.wait_for_msgs()
         self.wait_for_connection()
 
@@ -215,7 +281,8 @@ class DronesControllNode:
         self.drone.takeoff(altitude)
         self.state = MissionState.NONE
 
-        self.takeoff_timer = rospy.Timer(rospy.Duration(0.05), lambda _: self.takeoff_callback())
+        self.takeoff_timer = rospy.Timer(rospy.Duration(
+            0.05), lambda _: self.takeoff_callback())
 
     def takeoff_callback(self):
         if not self.drone.is_flying():
@@ -223,10 +290,17 @@ class DronesControllNode:
             self.takeoff_timer.shutdown()
 
     def fly_waypoints(self):
-        self.drone.fly_to_point(5, 5, 5)
-        
         if not self.drone.is_flying():
-            self.state = MissionState.LAND
+            if self.waypoints_index < len(self.waypoints.points):
+                self.fly_to_next_waypoint()
+                self.waypoints_index += 1
+            else:
+                self.state = MissionState.LAND
+
+    def fly_to_next_waypoint(self):
+        point = self.waypoints.points[self.waypoints_index]
+        rospy.loginfo(f'[{self.drone_name}] Fly to waypoint: {point}')
+        self.drone.fly_to_point(point.x, point.y, point.z)
 
 if __name__ == '__main__':
     try:
