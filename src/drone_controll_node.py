@@ -37,7 +37,7 @@ class Waypoints:
         self.id = extract_id(name)
         self.path = os.path.dirname(__file__) + '/../waypoints'
         self.points = []
-        self.marker_pub = rospy.Publisher(f'/{self.name}/waypoints', Path, queue_size=10)
+        self.marker_pub = rospy.Publisher(f'/{self.name}/path', Path, queue_size=10)
 
     def load(self, type: str):
         with open(f'{self.path}/{type}/{self.id}.txt', 'r') as f:
