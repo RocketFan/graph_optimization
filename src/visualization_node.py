@@ -76,7 +76,6 @@ class UAVVisualization:
         return color
 
     def path_callback(self, path: Path):
-        print(self.name)
         self.path_marker.set_path(path)
 
     def publish(self):
