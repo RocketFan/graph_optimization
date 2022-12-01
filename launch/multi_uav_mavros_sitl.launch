@@ -43,4 +43,9 @@
         <arg name="y" value="0"/>
         <arg name="z" value="0"/>
     </include>
+    <node pkg="uwb_localization" name="ground_truth_node" type="ground_truth_node.py">
+        <param name="uav_name_prefix" value="iris"/>
+    </node>
+
+
 </launch>
