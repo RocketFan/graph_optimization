@@ -161,6 +161,7 @@ catkin_install_python(PROGRAMS
   src/drone_controll_node.py
   src/visualization_node.py
   src/ground_truth_node.py
+  src/noisy_pose_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
