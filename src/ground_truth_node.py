@@ -95,7 +95,7 @@ class GroundTruthNode:
 
 
 if __name__ == '__main__':
-    try:
+    try:                     
         rospy.init_node('ground_truth_node', anonymous=True)
         node = GroundTruthNode()
         node.run()
