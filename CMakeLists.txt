@@ -159,6 +159,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   src/drone_controll_node.py
+  src/visualization_node.py
   src/ground_truth_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

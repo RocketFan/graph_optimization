@@ -11,6 +11,7 @@
     <arg name="debug" default="false"/>
     <arg name="verbose" default="true"/>
     <arg name="paused" default="false"/>
+
     <!-- Gazebo sim -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="gui" value="$(arg gui)"/>
@@ -19,6 +20,11 @@
         <arg name="verbose" value="$(arg verbose)"/>
         <arg name="paused" value="$(arg paused)"/>
     </include>
+
+    <!-- RVIZ -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find uwb_localization)/config/config_rviz.rviz" />
+
+    <!-- Spawn UAVs -->
     <include file="$(find uwb_localization)/launch/spawn_uav.launch">
         <arg name="id" value="0"/>
         <arg name="x" value="0"/>
