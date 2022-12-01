@@ -26,7 +26,6 @@ class PoseNoise(ABC):
                           self.get_noise(),
                           0, 0, 0] for _ in range(100)]
         example_poses_np = np.array(example_poses).T
-        print(example_poses)
         cov_matrix = np.cov(example_poses_np).astype(float)
 
         return cov_matrix
