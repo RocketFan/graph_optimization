@@ -227,7 +227,6 @@ class DronesControllNode:
     def __init__(self):
         self.rate = rospy.Rate(10)
         self.drone_name = rospy.get_param('~uav_name')
-        print("NAME ", self.drone_name)
         rospy.logwarn(os.path.abspath(__file__))
         # self.drone_name = rospy.get_namespace()
         self.drone = Drone(self.drone_name)
