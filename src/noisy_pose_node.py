@@ -3,8 +3,9 @@ import random
 import numpy as np
 
 from abc import ABC, abstractmethod
-from geometry_msgs.msg import Pose, PoseWithCovarianceStamped
+from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped
 from gazebo_msgs.msg import ModelStates
+from nav_msgs.msg import Path
 
 
 class PoseNoise(ABC):
@@ -58,27 +59,54 @@ class UAVPublisher:
         self.pose_noise = pose_noise
         self.id = extract_id(name)
         self.name = name
+
+        self.path_msg = Path()
+        self.path_msg.header.frame_id = 'map'
+        self.path_timer = rospy.Timer(rospy.Duration(0.3), lambda _: self.update_path_msg())
+        self.path_max = 300
+
         self.noisy_pose_msg = None
-        self.noisy_pose_pub = rospy.Publisher(
-            f'/{self.name}/noisy_pose', PoseWithCovarianceStamped, queue_size=10)
+        self.noisy_pose_pub = rospy.Publisher(f'/{self.name}/noisy/pose_cov', PoseWithCovarianceStamped, queue_size=10)
+        self.noisy_path_pub = rospy.Publisher(f'/{self.name}/noisy/path', Path, queue_size=10)
 
     def publish(self):
         if self.noisy_pose_msg:
-            msg = self.get_ground_truth_pose()
+            msg = self.get_pose_with_covariance()
             self.noisy_pose_pub.publish(msg)
+
+        self.noisy_path_pub.publish(self.path_msg)
 
     def update_noisy_pose_msg(self, noisy_pose_msg):
         self.noisy_pose_msg = noisy_pose_msg
 
-    def get_ground_truth_pose(self):
-        msg = PoseWithCovarianceStamped()
-        msg.header.frame_id = 'map'
+    def update_path_msg(self):
+        if self.noisy_pose_msg:
+            self.path_msg.poses.append(self.get_pose_stamped())
+            
+            if len(self.path_msg.poses) > self.path_max:
+                self.path_msg.poses.pop(0)
+
+    def get_pose(self):
+        msg = Pose()
         index = self.noisy_pose_msg.name.index(self.name)
-        msg.pose.pose = self.noisy_pose_msg.pose[index]
-        msg.pose.covariance = self.pose_noise.get_cov_matrix().flatten().tolist()
+        msg = self.noisy_pose_msg.pose[index]
 
         return msg
 
+    def get_pose_stamped(self):
+        msg = PoseStamped()
+        msg.header.frame_id = 'map'
+        msg.pose = self.get_pose()
+        
+        return msg
+
+    def get_pose_with_covariance(self):
+        msg = PoseWithCovarianceStamped()
+        msg.header.frame_id = 'map'
+        msg.pose.pose = self.get_pose()
+        msg.pose.covariance = self.pose_noise.get_cov_matrix().flatten().tolist()
+
+        return msg
 
 class NoisyPositionNode:
     def __init__(self):
