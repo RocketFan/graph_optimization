@@ -78,6 +78,15 @@ class UAVVisualization:
         self.noisy_path_sub = rospy.Subscriber(f'/{name}/noisy/path', Path, self.noisy_path_callback)
         self.noisy_path_pub = rospy.Publisher(f'/{name}/visualization/noisy/path', MarkerArray, queue_size=10)
 
+    def get_waypoints_path_markers(self) -> list:
+        return self.waypoints_path_marker.get_msg().markers
+
+    def get_ground_truth_path_markers(self) -> list:
+        return self.ground_truth_path_marker.get_msg().markers
+
+    def get_noisy_path_markers(self) -> list:
+        return self.noisy_path_marker.get_msg().markers
+
     def draw_color(self) -> ColorRGBA:
         color = ColorRGBA()
         color.r = random.random()
@@ -123,6 +132,10 @@ class VisualizationNode:
         self.uavs = []
         self.update_timer = rospy.Timer(rospy.Duration(1), lambda _: self.update())
 
+        self.waypoints_path_pub = rospy.Publisher('/visualization/path', MarkerArray, queue_size=10)
+        self.ground_truth_path_pub = rospy.Publisher('/visualization/ground_truth/path', MarkerArray, queue_size=10)
+        self.noisy_path_pub = rospy.Publisher('/visualization/noisy/path', MarkerArray, queue_size=10)
+
     def run(self):
         while not rospy.is_shutdown():
             self.visualize()
@@ -131,6 +144,37 @@ class VisualizationNode:
     def visualize(self):
         for uav in self.uavs:
             uav.publish()
+
+        self.publish_waypoints_path()
+        self.publish_ground_truth_path()
+        self.publish_noisy_path()
+
+    def publish_waypoints_path(self):
+        markers_msg = MarkerArray()
+
+        for uav in self.uavs:
+            markers = uav.get_waypoints_path_markers()
+            markers_msg.markers += markers
+
+        self.waypoints_path_pub.publish(markers_msg)
+
+    def publish_ground_truth_path(self):
+        markers_msg = MarkerArray()
+
+        for uav in self.uavs:
+            markers = uav.get_ground_truth_path_markers()
+            markers_msg.markers += markers
+
+        self.ground_truth_path_pub.publish(markers_msg)
+
+    def publish_noisy_path(self):
+        markers_msg = MarkerArray()
+
+        for uav in self.uavs:
+            markers = uav.get_noisy_path_markers()
+            markers_msg.markers += markers
+
+        self.noisy_path_pub.publish(markers_msg)
 
     def update(self):
         new_uav_names = self.update_uav_names()
