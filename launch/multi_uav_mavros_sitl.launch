@@ -49,4 +49,5 @@
     <node pkg="uwb_localization" name="noisy_pose_node" type="noisy_pose_node.py">
         <param name="uav_name_prefix" value="iris"/>
     </node>
+    <node pkg="uwb_localization" name="visualization_node" type="visualization_node.py"></node>
 </launch>
