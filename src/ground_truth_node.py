@@ -2,8 +2,9 @@
 import rospy
 import numpy as np
 
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped
 from gazebo_msgs.msg import ModelStates
+from nav_msgs.msg import Path
 
 def extract_id(name: str):
     id = name.replace('uav', '')
@@ -13,23 +14,45 @@ class UAVPublisher:
     def __init__(self, name):
         self.id = extract_id(name)
         self.name = name
+
+        self.path_msg = Path()
+        self.path_msg.header.frame_id = 'map'
+        self.path_timer = rospy.Timer(rospy.Duration(0.3), lambda _: self.update_path_msg())
+        self.path_max = 300
+
         self.ground_truth_msg = None
-        self.ground_truth_pub = rospy.Publisher(f'/{self.name}/ground_truth', PoseStamped, queue_size=10)
+        self.ground_truth_pub = rospy.Publisher(f'/{self.name}/ground_truth/pose', PoseStamped, queue_size=10)
+        self.path_pub = rospy.Publisher(f'/{self.name}/ground_truth/path', Path, queue_size=10)
 
     def publish(self):
         if self.ground_truth_msg:
-            msg = self.get_ground_truth_pose()
+            msg = self.get_pose_stamped()
             self.ground_truth_pub.publish(msg)
+
+        self.path_pub.publish(self.path_msg)
 
     def update_ground_truth_msg(self, ground_truth_msg):
         self.ground_truth_msg = ground_truth_msg
 
-    def get_ground_truth_pose(self):
+    def update_path_msg(self):
+        if self.ground_truth_msg:
+            self.path_msg.poses.append(self.get_pose_stamped())
+            
+            if len(self.path_msg.poses) > self.path_max:
+                self.path_msg.poses.pop(0)
+
+    def get_pose(self):
+        msg = Pose()
+        index = self.ground_truth_msg.name.index(self.name)
+        msg = self.ground_truth_msg.pose[index]
+
+        return msg
+
+    def get_pose_stamped(self):
         msg = PoseStamped()
         msg.header.frame_id = 'map'
-        index = self.ground_truth_msg.name.index(self.name)
-        msg.pose = self.ground_truth_msg.pose[index]
-
+        msg.pose = self.get_pose()
+        
         return msg
             
 
@@ -95,7 +118,7 @@ class GroundTruthNode:
 
 
 if __name__ == '__main__':
-    try:                     
+    try:   
         rospy.init_node('ground_truth_node', anonymous=True)
         node = GroundTruthNode()
         node.run()
