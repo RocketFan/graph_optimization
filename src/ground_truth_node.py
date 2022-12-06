@@ -18,7 +18,7 @@ class UAVPublisher:
         self.path_msg = Path()
         self.path_msg.header.frame_id = 'map'
         self.path_timer = rospy.Timer(rospy.Duration(0.3), lambda _: self.update_path_msg())
-        self.path_max = 300
+        self.path_max = 200
 
         self.ground_truth_msg = None
         self.ground_truth_pub = rospy.Publisher(f'/{self.name}/ground_truth/pose', PoseStamped, queue_size=10)
