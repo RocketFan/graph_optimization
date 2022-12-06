@@ -40,13 +40,13 @@ class PoseNoise(ABC):
 
 
 class PoseRandomNoise(PoseNoise):
-    def __init__(self, max):
+    def __init__(self, offset):
         super().__init__()
-        self.max = max
+        self.offset = offset
         self.init()
 
     def get_noise(self) -> int:
-        return random.random() * self.max
+        return (random.random() * self.offset) - self.offset / 2
 
 
 def extract_id(name: str):
@@ -67,14 +67,14 @@ class UAVPublisher:
 
         self.noisy_pose_msg = None
         self.noisy_pose_pub = rospy.Publisher(f'/{self.name}/noisy/pose_cov', PoseWithCovarianceStamped, queue_size=10)
-        self.noisy_path_pub = rospy.Publisher(f'/{self.name}/noisy/path', Path, queue_size=10)
+        self.path_pub = rospy.Publisher(f'/{self.name}/noisy/path', Path, queue_size=10)
 
     def publish(self):
         if self.noisy_pose_msg:
             msg = self.get_pose_with_covariance()
             self.noisy_pose_pub.publish(msg)
 
-        self.noisy_path_pub.publish(self.path_msg)
+        self.path_pub.publish(self.path_msg)
 
     def update_noisy_pose_msg(self, noisy_pose_msg):
         self.noisy_pose_msg = noisy_pose_msg
