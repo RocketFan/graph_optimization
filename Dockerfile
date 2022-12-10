@@ -4,10 +4,15 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     build-essential \
     wget \
     git \
-    cmake\
+    cmake \
+    software-properties-common \
     # gazebo11 \
     python3-catkin-tools \
     libnvidia-gl-515-server
+
+# Install GTSAM
+RUN add-apt-repository ppa:borglab/gtsam-release-4.0
+RUN apt-get update && apt-get -y install libgtsam-dev libgtsam-unstable-dev
 
 # Create and setup user
 RUN adduser --disabled-password --gecos '' docker && \
