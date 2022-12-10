@@ -145,13 +145,13 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /visualization/path
       Name: WaypointsPath
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /visualization/ground_truth/path
@@ -164,6 +164,14 @@ Visualization Manager:
       Enabled: true
       Marker Topic: /visualization/noisy/path
       Name: NoisyPath
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /visualization/optimized/path
+      Name: MarkerArray
       Namespaces:
         "": true
       Queue Size: 100
@@ -196,7 +204,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.677987575531006
+      Distance: 0.0023152653593569994
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -204,17 +212,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -4.833010196685791
-        Y: -9.939064979553223
-        Z: 9.931503295898438
+        X: -4.576171398162842
+        Y: -11.773216247558594
+        Z: 5.710670471191406
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3903990387916565
+      Pitch: 0.19039931893348694
       Target Frame: <Fixed Frame>
-      Yaw: 4.27357292175293
+      Yaw: 4.668577194213867
     Saved: ~
 Window Geometry:
   Displays:

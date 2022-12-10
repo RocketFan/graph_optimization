@@ -67,9 +67,11 @@ class UAVVisualization:
         random_color = self.draw_color()
         blue_color = self.get_color(0, 0, 1, 0.5)
         red_color = self.get_color(1, 0, 0, 0.5)
+        green_color = self.get_color(0, 1, 0, 0.5)
         self.waypoints_path_marker = PathMarker(self.id, random_color, 0.1, True)
         self.ground_truth_path_marker = PathMarker(self.id + 1, blue_color, 0.025)
         self.noisy_path_marker = PathMarker(self.id + 2, red_color, 0.025)
+        self.optimized_path_marker = PathMarker(self.id + 3, green_color, 0.025, True)
 
         self.waypoints_path_sub = rospy.Subscriber(f'/{name}/path', Path, self.waypoints_path_callback)
         self.waypoints_path_pub = rospy.Publisher(f'/{name}/visualization/path', MarkerArray, queue_size=10)
@@ -77,6 +79,8 @@ class UAVVisualization:
         self.ground_truth_path_pub = rospy.Publisher(f'/{name}/visualization/ground_truth/path', MarkerArray, queue_size=10)
         self.noisy_path_sub = rospy.Subscriber(f'/{name}/noisy/path', Path, self.noisy_path_callback)
         self.noisy_path_pub = rospy.Publisher(f'/{name}/visualization/noisy/path', MarkerArray, queue_size=10)
+        self.optimized_path_sub = rospy.Subscriber(f'/{name}/optimized/path', Path, self.optimized_path_callback)
+        self.optimized_path_pub = rospy.Publisher(f'/{name}/visualization/optimized/path', MarkerArray, queue_size=10)
 
     def get_waypoints_path_markers(self) -> list:
         return self.waypoints_path_marker.get_msg().markers
@@ -86,6 +90,9 @@ class UAVVisualization:
 
     def get_noisy_path_markers(self) -> list:
         return self.noisy_path_marker.get_msg().markers
+
+    def get_optimized_path_markers(self) -> list:
+        return self.optimized_path_marker.get_msg().markers
 
     def draw_color(self) -> ColorRGBA:
         color = ColorRGBA()
@@ -114,6 +121,9 @@ class UAVVisualization:
     def noisy_path_callback(self, path: Path):
         self.noisy_path_marker.set_path(path)
 
+    def optimized_path_callback(self, path: Path):
+        self.optimized_path_marker.set_path(path)
+
     def publish(self):
         waypoints_path_msg = self.waypoints_path_marker.get_msg()
         self.waypoints_path_pub.publish(waypoints_path_msg)
@@ -123,7 +133,9 @@ class UAVVisualization:
 
         noisy_path_msg = self.noisy_path_marker.get_msg()
         self.noisy_path_pub.publish(noisy_path_msg)
-        
+
+        optimized_path_msg = self.optimized_path_marker.get_msg()
+        self.optimized_path_pub.publish(optimized_path_msg)
 
 class VisualizationNode:
     def __init__(self):
@@ -135,6 +147,7 @@ class VisualizationNode:
         self.waypoints_path_pub = rospy.Publisher('/visualization/path', MarkerArray, queue_size=10)
         self.ground_truth_path_pub = rospy.Publisher('/visualization/ground_truth/path', MarkerArray, queue_size=10)
         self.noisy_path_pub = rospy.Publisher('/visualization/noisy/path', MarkerArray, queue_size=10)
+        self.optimized_path_pub = rospy.Publisher('/visualization/optimized/path', MarkerArray, queue_size=10)
 
     def run(self):
         while not rospy.is_shutdown():
@@ -148,6 +161,7 @@ class VisualizationNode:
         self.publish_waypoints_path()
         self.publish_ground_truth_path()
         self.publish_noisy_path()
+        self.publish_optimized_path()
 
     def publish_waypoints_path(self):
         markers_msg = MarkerArray()
@@ -175,6 +189,15 @@ class VisualizationNode:
             markers_msg.markers += markers
 
         self.noisy_path_pub.publish(markers_msg)
+
+    def publish_optimized_path(self):
+        markers_msg = MarkerArray()
+
+        for uav in self.uavs:
+            markers = uav.get_optimized_path_markers()
+            markers_msg.markers += markers
+
+        self.optimized_path_pub.publish(markers_msg)
 
     def update(self):
         new_uav_names = self.update_uav_names()
