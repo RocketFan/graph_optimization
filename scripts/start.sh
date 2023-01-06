@@ -9,6 +9,6 @@ catkin build
 source devel/setup.bash
 source scripts/setup.sh
 
-roslaunch uwb_localization multi_uav_mavros_sitl.launch
+roslaunch uwb_localization single_uav_mavros_sitl.launch
 # cd $SCRIPTPATH/tmux_scripts
 # xterm -e ./start.sh

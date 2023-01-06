@@ -47,7 +47,8 @@ RUN rosdep update && sudo apt-get update && \
     ros-noetic-mavros \
     ros-noetic-gazebo-ros \
     ros-noetic-cv-bridge \
-    ros-noetic-rviz
+    ros-noetic-rviz \
+    ros-noetic-rqt-graph
 
 # Install GeographicLib datasets
 RUN sudo /opt/ros/noetic/lib/mavros/install_geographiclib_datasets.sh

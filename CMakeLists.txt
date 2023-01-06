@@ -10,6 +10,8 @@ project(uwb_localization)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   roscpp
+  geometry_msgs
+  nav_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -46,11 +48,11 @@ find_package(GTSAM REQUIRED)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  UWBData.msg
+  UWBDataArray.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -67,10 +69,11 @@ find_package(GTSAM REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -134,6 +137,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(graph_optimization_node src/graph_optimization_node.cpp)
+add_executable(uwb_optimization_node src/graph_optimization_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -147,6 +151,11 @@ add_executable(graph_optimization_node src/graph_optimization_node.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(graph_optimization_node
+  gtsam
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(uwb_optimization_node
   gtsam
   ${catkin_LIBRARIES}
 )
@@ -165,6 +174,7 @@ catkin_install_python(PROGRAMS
   src/visualization_node.py
   src/ground_truth_node.py
   src/noisy_pose_node.py
+  src/noisy_uwb_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

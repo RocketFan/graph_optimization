@@ -124,7 +124,7 @@ class Drone:
         desired_position = np.array([x, y, z])
         diff_position = np.linalg.norm(desired_position - position)
 
-        return abs(diff_position) < 0.1
+        return abs(diff_position) < 0.15
 
     def global_position_callback(self, msg: NavSatFix):
         self.global_position_msg = msg

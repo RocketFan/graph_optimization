@@ -10,6 +10,7 @@ services:
             - DISPLAY=${DISPLAY}
             - ROS_MASTER_IP=http://localhost:11311 
             - ROS_IP=127.0.0.1
+            - PYTHONUNBUFFERED=1
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix:ro
             - $PWD:/home/docker/ws/src/uwb_localization:rw

@@ -87,7 +87,6 @@ class UAVPublisher:
                 self.path_msg.poses.pop(0)
 
     def get_pose(self):
-        msg = Pose()
         index = self.noisy_pose_msg.name.index(self.name)
         msg = self.noisy_pose_msg.pose[index]
 
