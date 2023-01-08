@@ -19,12 +19,12 @@
 
 using namespace gtsam;
 
-class UnaryFactor : public NoiseModelFactor1<Point3>
+class GPSFactor : public NoiseModelFactor1<Point3>
 {
 	double mx_, my_, mz_; ///< X and Y measurements
 
 public:
-	UnaryFactor(Key j, Point3 point, const SharedNoiseModel &model)
+	GPSFactor(Key j, Point3 point, const SharedNoiseModel &model)
 		: NoiseModelFactor1<Point3>(model, j), mx_(point.x()), my_(point.y()), mz_(point.z()) {}
 
 	Vector evaluateError(const Point3 &q,
@@ -77,8 +77,6 @@ public:
 
 		init_graph();
 	}
-
-	void spin_once() {}
 
 	void init_graph()
 	{
@@ -133,8 +131,8 @@ public:
 		noiseModel::Diagonal::shared_ptr odometryNoise = noiseModel::Diagonal::Sigmas(Vector3(0.2, 0.2, 0.2));
 		graph.emplace_shared<BetweenFactor<Point3>>(key_index - 1, key_index, odometry, odometryNoise);
 
-		noiseModel::Diagonal::shared_ptr unaryNoise = noiseModel::Diagonal::Sigmas(Vector3(1, 1, 1));
-		graph.emplace_shared<UnaryFactor>(key_index, pose_point, unaryNoise);
+		noiseModel::Diagonal::shared_ptr gpsNoise = noiseModel::Diagonal::Sigmas(Vector3(1, 1, 1));
+		graph.emplace_shared<GPSFactor>(key_index, pose_point, gpsNoise);
 
 		initialEstimate.insert(key_index, pose_point);
 		key_index++;
@@ -182,8 +180,6 @@ int main(int argc, char **argv)
 
 	while (ros::ok())
 	{
-		node.spin_once();
-
 		rate.sleep();
 		ros::spinOnce();
 	}
