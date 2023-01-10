@@ -21,7 +21,7 @@ using namespace gtsam;
 
 class GPSFactor : public NoiseModelFactor1<Point3>
 {
-	double mx_, my_, mz_; ///< X and Y measurements
+	double mx_, my_, mz_;
 
 public:
 	GPSFactor(Key j, Point3 point, const SharedNoiseModel &model)
