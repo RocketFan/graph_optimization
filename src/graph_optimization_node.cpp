@@ -93,7 +93,6 @@ public:
 		auto msg = nav_msgs::Path();
 		msg.header.frame_id = "map";
 		int first_key = results.keys().at(0);
-		std::cout << first_key << std::endl;
 
 		for (int i = first_key; i < results.size(); i++)
 		{
@@ -126,7 +125,7 @@ public:
 
 		auto timestamp = get_timestamp();
 		auto odometry = calc_shift(timestamp);
-		auto pose_point = get_pose_point();
+		auto pose_point = get_pose_point();	
 
 		noiseModel::Diagonal::shared_ptr odometryNoise = noiseModel::Diagonal::Sigmas(Vector3(0.2, 0.2, 0.2));
 		graph.emplace_shared<BetweenFactor<Point3>>(key_index - 1, key_index, odometry, odometryNoise);

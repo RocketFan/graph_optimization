@@ -31,7 +31,7 @@
         <arg name="y" value="0"/>
         <arg name="z" value="0"/>
     </include>
-    <node pkg="uwb_localization" name="graph_optimization_node" type="graph_optimization_node">
+    <node pkg="uwb_localization" name="graph_optimization_node" type="graph_optimization_node" output="screen">
         <param name="uav_name" value="uav0"/>
     </node>
     <node pkg="uwb_localization" name="ground_truth_node" type="ground_truth_node.py">
