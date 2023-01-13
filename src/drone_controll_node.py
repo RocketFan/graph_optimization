@@ -31,13 +31,15 @@ class WayPoint:
     def __str__(self):
         return f'[x: {self.x}, y: {self.y}, z: {self.z}]'
 
+
 class Waypoints:
     def __init__(self, name):
         self.name = name
         self.id = extract_id(name)
         self.path = os.path.dirname(__file__) + '/../waypoints'
         self.points = []
-        self.path_pub = rospy.Publisher(f'/{self.name}/path', Path, queue_size=10)
+        self.path_pub = rospy.Publisher(
+            f'/{self.name}/path', Path, queue_size=10)
 
     def load(self, type: str):
         with open(f'{self.path}/{type}/{self.id}.txt', 'r') as f:
@@ -49,8 +51,8 @@ class Waypoints:
     def parse_point(self, line: str) -> Point:
         line_array = line.split(' ')
         point = WayPoint(float(line_array[0]),
-                      float(line_array[1]),
-                      float(line_array[2]))
+                         float(line_array[1]),
+                         float(line_array[2]))
 
         return point
 
@@ -89,20 +91,16 @@ class Drone:
         self.local_point_pub = rospy.Publisher(
             f'{mavros_prefix}/setpoint_position/local', PoseStamped, queue_size=10)
 
-        self.global_position_sub = rospy.Subscriber(
-            f'{mavros_prefix}/global_position/global', NavSatFix, self.global_position_callback)
         self.local_position_sub = rospy.Subscriber(
             f'{mavros_prefix}/local_position/pose', PoseStamped, self.local_position_callback)
         self.state_sub = rospy.Subscriber(
             f'{mavros_prefix}/state', State, self.state_callback)
 
-        self.global_position_msg: NavSatFix = None
         self.local_position_msg: PoseStamped = None
         self.state_msg: State = None
 
     def is_ready(self):
-        return (self.global_position_msg != None
-                and self.local_position_msg != None
+        return (self.local_position_msg != None
                 and self.state_msg != None)
 
     def is_connected(self):
@@ -125,9 +123,6 @@ class Drone:
         diff_position = np.linalg.norm(desired_position - position)
 
         return abs(diff_position) < 0.15
-
-    def global_position_callback(self, msg: NavSatFix):
-        self.global_position_msg = msg
 
     def local_position_callback(self, msg: PoseStamped):
         self.local_position_msg = msg
@@ -313,6 +308,7 @@ class DronesControllNode:
         point = self.waypoints.points[self.waypoints_index]
         rospy.loginfo(f'[{self.drone_name}] Fly to waypoint: {point}')
         self.drone.fly_to_point(point.x, point.y, point.z)
+
 
 if __name__ == '__main__':
     try:
